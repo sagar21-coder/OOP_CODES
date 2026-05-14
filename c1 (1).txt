@@ -1,0 +1,147 @@
+import java.sql.*;
+import java.util.Scanner;
+
+public class Mavenproject4 {
+
+    static final String URL = "jdbc:mysql://localhost:3306/testdb";
+    static final String USER = "root";
+    static final String PASSWORD = "password"; // change if needed
+
+    static Scanner sc = new Scanner(System.in);
+
+    public static Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(URL, USER, PASSWORD);
+    }
+
+    public static void addEmployee() {
+        String sql = "INSERT INTO employees (id, name, department, salary) VALUES (?, ?, ?, ?)";
+
+        try (Connection con = getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            System.out.print("Enter ID: ");
+            int id = Integer.parseInt(sc.nextLine());
+
+            System.out.print("Enter Name: ");
+            String name = sc.nextLine();
+
+            System.out.print("Enter Department: ");
+            String dept = sc.nextLine();
+
+            System.out.print("Enter Salary: ");
+            double salary = Double.parseDouble(sc.nextLine());
+
+            ps.setInt(1, id);
+            ps.setString(2, name);
+            ps.setString(3, dept);
+            ps.setDouble(4, salary);
+
+            ps.executeUpdate();
+            System.out.println("Employee added successfully.");
+
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    public static void updateEmployee() {
+        String sql = "UPDATE employees SET salary = ? WHERE id = ?";
+
+        try (Connection con = getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            System.out.print("Enter Employee ID: ");
+            int id = Integer.parseInt(sc.nextLine());
+
+            System.out.print("Enter New Salary: ");
+            double salary = Double.parseDouble(sc.nextLine());
+
+            ps.setDouble(1, salary);
+            ps.setInt(2, id);
+
+            int rows = ps.executeUpdate();
+
+            System.out.println(rows > 0 ? "Updated successfully." : "Employee not found.");
+
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    public static void deleteEmployee() {
+        String sql = "DELETE FROM employees WHERE id = ?";
+
+        try (Connection con = getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            System.out.print("Enter Employee ID: ");
+            int id = Integer.parseInt(sc.nextLine());
+
+            ps.setInt(1, id);
+
+            int rows = ps.executeUpdate();
+
+            System.out.println(rows > 0 ? "Deleted successfully." : "Employee not found.");
+
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    public static void viewEmployees() {
+        String sql = "SELECT * FROM employees";
+
+        try (Connection con = getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            System.out.println("\nID | Name | Department | Salary");
+
+            boolean found = false;
+
+            while (rs.next()) {
+                found = true;
+                System.out.println(
+                        rs.getInt("id") + " | " +
+                        rs.getString("name") + " | " +
+                        rs.getString("department") + " | " +
+                        rs.getDouble("salary")
+                );
+            }
+
+            if (!found) {
+                System.out.println("No records found.");
+            }
+
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    public static void main(String[] args) {
+
+        while (true) {
+            System.out.println("\n===== EMPLOYEE MENU =====");
+            System.out.println("1. Add Employee");
+            System.out.println("2. Update Employee");
+            System.out.println("3. Delete Employee");
+            System.out.println("4. View Employees");
+            System.out.println("5. Exit");
+            System.out.print("Enter choice: ");
+
+            int choice = Integer.parseInt(sc.nextLine());
+
+            switch (choice) {
+                case 1 -> addEmployee();
+                case 2 -> updateEmployee();
+                case 3 -> deleteEmployee();
+                case 4 -> viewEmployees();
+                case 5 -> {
+                    System.out.println("Exiting...");
+                    return;
+                }
+                default -> System.out.println("Invalid choice");
+            }
+        }
+    }
+}

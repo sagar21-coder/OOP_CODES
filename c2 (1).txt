@@ -1,0 +1,165 @@
+import java.sql.*;
+import java.util.Scanner;
+
+public class Mavenproject5 {
+
+    static final String URL = "jdbc:mysql://localhost:3306/testdb";
+    static final String USER = "root";
+    static final String PASSWORD = "password";
+
+    static Scanner sc = new Scanner(System.in);
+
+    public static Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(URL, USER, PASSWORD);
+    }
+
+    public static void addStudent() {
+
+        String sql = "INSERT INTO students (id, name, course, marks) VALUES (?, ?, ?, ?)";
+
+        try (Connection con = getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            con.setAutoCommit(false);
+
+            System.out.print("Enter ID: ");
+            int id = Integer.parseInt(sc.nextLine());
+
+            System.out.print("Enter Name: ");
+            String name = sc.nextLine();
+
+            System.out.print("Enter Course: ");
+            String course = sc.nextLine();
+
+            System.out.print("Enter Marks: ");
+            double marks = Double.parseDouble(sc.nextLine());
+
+            ps.setInt(1, id);
+            ps.setString(2, name);
+            ps.setString(3, course);
+            ps.setDouble(4, marks);
+
+            ps.executeUpdate();
+            con.commit();
+
+            System.out.println("Student added successfully.");
+
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    public static void viewStudents() {
+
+        String sql = "SELECT * FROM students";
+
+        try (Connection con = getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            System.out.println("\nID | Name | Course | Marks");
+
+            while (rs.next()) {
+                System.out.println(
+                        rs.getInt("id") + " | " +
+                        rs.getString("name") + " | " +
+                        rs.getString("course") + " | " +
+                        rs.getDouble("marks")
+                );
+            }
+
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    public static void updateStudent() {
+
+        String sql = "UPDATE students SET marks = ? WHERE id = ?";
+
+        try (Connection con = getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            con.setAutoCommit(false);
+
+            System.out.print("Enter Student ID: ");
+            int id = Integer.parseInt(sc.nextLine());
+
+            System.out.print("Enter New Marks: ");
+            double marks = Double.parseDouble(sc.nextLine());
+
+            ps.setDouble(1, marks);
+            ps.setInt(2, id);
+
+            int rows = ps.executeUpdate();
+
+            if (rows > 0) {
+                con.commit();
+                System.out.println("Updated successfully.");
+            } else {
+                con.rollback();
+                System.out.println("Student not found.");
+            }
+
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    public static void deleteStudent() {
+
+        String sql = "DELETE FROM students WHERE id = ?";
+
+        try (Connection con = getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            con.setAutoCommit(false);
+
+            System.out.print("Enter Student ID: ");
+            int id = Integer.parseInt(sc.nextLine());
+
+            ps.setInt(1, id);
+
+            int rows = ps.executeUpdate();
+
+            if (rows > 0) {
+                con.commit();
+                System.out.println("Deleted successfully.");
+            } else {
+                con.rollback();
+                System.out.println("Student not found.");
+            }
+
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    public static void main(String[] args) {
+
+        while (true) {
+
+            System.out.println("\n===== STUDENT MANAGEMENT =====");
+            System.out.println("1. Add Student");
+            System.out.println("2. View Students");
+            System.out.println("3. Update Student");
+            System.out.println("4. Delete Student");
+            System.out.println("5. Exit");
+            System.out.print("Enter choice: ");
+
+            int choice = Integer.parseInt(sc.nextLine());
+
+            switch (choice) {
+                case 1 -> addStudent();
+                case 2 -> viewStudents();
+                case 3 -> updateStudent();
+                case 4 -> deleteStudent();
+                case 5 -> {
+                    System.out.println("Exiting...");
+                    return;
+                }
+                default -> System.out.println("Invalid choice");
+            }
+        }
+    }
+}
